@@ -5,6 +5,7 @@ from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
 from io import BytesIO
+from reportlab.lib.units import inch  # Add this import to use 'inch'
 
 # Function to extract text from Word file
 def extract_text_from_word(file):
