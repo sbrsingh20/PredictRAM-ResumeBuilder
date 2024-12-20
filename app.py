@@ -85,6 +85,8 @@ def main():
                 max_value=5, 
                 value=max(1, len(st.session_state.user_data['education']))  # Ensure value is >= 1
             )
+
+            # Add Education Entries
             for i in range(education_count):
                 with st.expander(f"Education Entry {i + 1}"):
                     degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'] if i < len(st.session_state.user_data['education']) else "")
@@ -96,6 +98,10 @@ def main():
                             st.session_state.user_data['education'].append({'degree': degree, 'field': field, 'institution': institution, 'year': year})
                         else:
                             st.session_state.user_data['education'][i] = {'degree': degree, 'field': field, 'institution': institution, 'year': year}
+            
+            # Option to add another entry
+            if st.button('Add Another Education Entry'):
+                st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
 
             # Input for work experience
             st.subheader("Work Experience")
@@ -105,6 +111,8 @@ def main():
                 max_value=5,
                 value=max(1, len(st.session_state.user_data['work_experience']))  # Ensure value is >= 1
             )
+
+            # Add Work Experience Entries
             for i in range(work_count):
                 with st.expander(f"Work Experience Entry {i + 1}"):
                     title = st.text_input(f"Job Title {i + 1}",
@@ -120,6 +128,10 @@ def main():
                             st.session_state.user_data['work_experience'].append({'title': title, 'company': company, 'years': years, 'description': description})
                         else:
                             st.session_state.user_data['work_experience'][i] = {'title': title, 'company': company, 'years': years, 'description': description}
+            
+            # Option to add another entry
+            if st.button('Add Another Work Experience Entry'):
+                st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
 
             # Input for skills
             st.subheader("Skills")
