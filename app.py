@@ -4,7 +4,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
-from reportlab.lib.units import inch
+from io import BytesIO
 
 # Function to extract text from Word file
 def extract_text_from_word(file):
@@ -92,9 +92,11 @@ def extract_text_from_word(file):
     return data
 
 # Function to generate the resume PDF
-def generate_resume_pdf(data, filename="resume.pdf"):
-    # Create a PDF document
-    doc = SimpleDocTemplate(filename, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+def generate_resume_pdf(data):
+    # Create a PDF document in memory (using BytesIO)
+    buffer = BytesIO()
+
+    doc = SimpleDocTemplate(buffer, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
     
     # Create a list to hold the flowable elements
     story = []
@@ -209,9 +211,12 @@ def generate_resume_pdf(data, filename="resume.pdf"):
 
     # Build the PDF document
     doc.build(story)
+    
+    # Return the buffer so we can serve the file in Streamlit
+    buffer.seek(0)
+    return buffer
 
 # Streamlit App
-
 def main():
     st.title("Resume Builder - Upload Word Document")
     
@@ -228,9 +233,15 @@ def main():
 
         # Generate the PDF button
         if st.button("Generate Resume PDF"):
-            filename = "generated_resume.pdf"
-            generate_resume_pdf(user_data, filename)
-            st.success(f"Resume generated successfully! You can download it [here]({filename}).")
+            resume_pdf = generate_resume_pdf(user_data)
             
+            # Provide download button
+            st.download_button(
+                label="Download Resume PDF",
+                data=resume_pdf,
+                file_name="resume.pdf",
+                mime="application/pdf"
+            )
+
 if __name__ == "__main__":
     main()
