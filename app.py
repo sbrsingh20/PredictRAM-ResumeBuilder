@@ -25,62 +25,71 @@ def extract_text_from_word(file):
     
     current_section = None
     for para in doc.paragraphs:
-        if "Full Name" in para.text:
-            data["contact_info"]["name"] = para.text.split(":")[1].strip()
-        elif "Phone Number" in para.text:
-            data["contact_info"]["phone"] = para.text.split(":")[1].strip()
-        elif "Email Address" in para.text:
-            data["contact_info"]["email"] = para.text.split(":")[1].strip()
-        elif "LinkedIn Profile" in para.text:
-            data["contact_info"]["linkedin"] = para.text.split(":")[1].strip()
-        elif "Location" in para.text:
-            data["contact_info"]["location"] = para.text.split(":")[1].strip()
-
-        elif "Professional Summary" in para.text:
-            current_section = "professional_summary"
-            data["professional_summary"] = para.text.split(":")[1].strip()
-
-        elif "Key Skills" in para.text:
-            current_section = "key_skills"
-            data["key_skills"] = para.text.split(":")[1].strip().split(",")  # Assuming skills are comma-separated
+        para_text = para.text.strip()
         
-        elif "Professional Experience" in para.text:
+        # Ensure we check if there's a colon before splitting
+        if "Full Name" in para_text:
+            if ":" in para_text:
+                data["contact_info"]["name"] = para_text.split(":")[1].strip()
+        elif "Phone Number" in para_text:
+            if ":" in para_text:
+                data["contact_info"]["phone"] = para_text.split(":")[1].strip()
+        elif "Email Address" in para_text:
+            if ":" in para_text:
+                data["contact_info"]["email"] = para_text.split(":")[1].strip()
+        elif "LinkedIn Profile" in para_text:
+            if ":" in para_text:
+                data["contact_info"]["linkedin"] = para_text.split(":")[1].strip()
+        elif "Location" in para_text:
+            if ":" in para_text:
+                data["contact_info"]["location"] = para_text.split(":")[1].strip()
+
+        elif "Professional Summary" in para_text:
+            current_section = "professional_summary"
+            if ":" in para_text:
+                data["professional_summary"] = para_text.split(":")[1].strip()
+
+        elif "Key Skills" in para_text:
+            current_section = "key_skills"
+            if ":" in para_text:
+                data["key_skills"] = para_text.split(":")[1].strip().split(",")  # Assuming skills are comma-separated
+        
+        elif "Professional Experience" in para_text:
             current_section = "professional_experience"
-        elif "Education" in para.text:
+        elif "Education" in para_text:
             current_section = "education"
-        elif "Certifications" in para.text:
+        elif "Certifications" in para_text:
             current_section = "certifications"
-        elif "Projects" in para.text:
+        elif "Projects" in para_text:
             current_section = "projects"
-        elif "Awards" in para.text:
+        elif "Awards" in para_text:
             current_section = "awards"
-        elif "Volunteer Work" in para.text:
+        elif "Volunteer Work" in para_text:
             current_section = "volunteer_work"
-        elif "Languages" in para.text:
+        elif "Languages" in para_text:
             current_section = "languages"
-        elif "Additional" in para.text:
+        elif "Additional" in para_text:
             current_section = "additional"
 
         # For sections that follow the headings
         elif current_section == "professional_experience":
-            data["professional_experience"].append(para.text.strip())
+            data["professional_experience"].append(para_text)
         elif current_section == "education":
-            data["education"].append(para.text.strip())
+            data["education"].append(para_text)
         elif current_section == "certifications":
-            data["certifications"].append(para.text.strip())
+            data["certifications"].append(para_text)
         elif current_section == "projects":
-            data["projects"].append(para.text.strip())
+            data["projects"].append(para_text)
         elif current_section == "awards":
-            data["awards"].append(para.text.strip())
+            data["awards"].append(para_text)
         elif current_section == "volunteer_work":
-            data["volunteer_work"].append(para.text.strip())
+            data["volunteer_work"].append(para_text)
         elif current_section == "languages":
-            data["languages"].append(para.text.strip())
+            data["languages"].append(para_text)
         elif current_section == "additional":
-            data["additional"].append(para.text.strip())
+            data["additional"].append(para_text)
 
     return data
-
 
 # Function to generate PDF using ReportLab
 def generate_pdf_reportlab(user_data):
