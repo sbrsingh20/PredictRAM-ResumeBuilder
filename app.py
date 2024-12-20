@@ -2,9 +2,9 @@ import streamlit as st
 from docx import Document
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
-from reportlab.pdfgen import canvas
-from io import BytesIO
-
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.lib.units import inch
 
 # Function to extract text from Word file
 def extract_text_from_word(file):
@@ -91,99 +91,146 @@ def extract_text_from_word(file):
 
     return data
 
-# Function to generate PDF using ReportLab
-def generate_pdf_reportlab(user_data):
-    buffer = BytesIO()
-    c = canvas.Canvas(buffer, pagesize=letter)
-    width, height = letter
+# Function to generate the resume PDF
+def generate_resume_pdf(data, filename="resume.pdf"):
+    # Create a PDF document
+    doc = SimpleDocTemplate(filename, pagesize=letter, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+    
+    # Create a list to hold the flowable elements
+    story = []
+    
+    # Create a stylesheet for the document
+    styles = getSampleStyleSheet()
 
-    # Title of the resume
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(200, height - 50, f"{user_data['contact_info']['name']}'s Resume")
+    # Header Section: Full Name, Phone, Email, LinkedIn, Location
+    header_style = styles['Heading1']
+    header_style.fontSize = 18
+    header_style.leading = 22
 
-    # Contact Information
-    c.setFont("Helvetica", 12)
-    c.drawString(50, height - 100, f"Name: {user_data['contact_info']['name']}")
-    c.drawString(50, height - 120, f"Email: {user_data['contact_info']['email']}")
-    c.drawString(50, height - 140, f"Phone: {user_data['contact_info']['phone']}")
-    c.drawString(50, height - 160, f"LinkedIn: {user_data['contact_info']['linkedin']}")
-    c.drawString(50, height - 180, f"Location: {user_data['contact_info']['location']}")
+    name = data['contact_info'].get('name', 'N/A')
+    phone = data['contact_info'].get('phone', 'N/A')
+    email = data['contact_info'].get('email', 'N/A')
+    linkedin = data['contact_info'].get('linkedin', 'N/A')
+    location = data['contact_info'].get('location', 'N/A')
+    
+    header = f"{name}\n{phone} | {email} | {linkedin} | {location}"
+    story.append(Paragraph(header, header_style))
+    story.append(Spacer(1, 0.25 * inch))
+    
+    # Professional Summary Section
+    summary_style = styles['Normal']
+    summary_style.fontSize = 12
+    summary_style.leading = 14
+    if data['professional_summary']:
+        story.append(Paragraph("<b>Professional Summary:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        story.append(Paragraph(data['professional_summary'], summary_style))
+        story.append(Spacer(1, 0.25 * inch))
+    
+    # Key Skills Section
+    if data['key_skills']:
+        story.append(Paragraph("<b>Key Skills:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        key_skills = ', '.join(data['key_skills'])
+        story.append(Paragraph(key_skills, summary_style))
+        story.append(Spacer(1, 0.25 * inch))
+    
+    # Professional Experience Section
+    if data['professional_experience']:
+        story.append(Paragraph("<b>Professional Experience:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for job in data['professional_experience']:
+            job_paragraph = Paragraph(job, summary_style)
+            story.append(job_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
 
-    # Professional Summary
-    if user_data["professional_summary"]:
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, height - 220, "Professional Summary")
-        c.setFont("Helvetica", 12)
-        c.drawString(50, height - 240, user_data["professional_summary"])
+    # Education Section
+    if data['education']:
+        story.append(Paragraph("<b>Education:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for edu in data['education']:
+            edu_paragraph = Paragraph(edu, summary_style)
+            story.append(edu_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
+    
+    # Certifications Section
+    if data['certifications']:
+        story.append(Paragraph("<b>Certifications:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for cert in data['certifications']:
+            cert_paragraph = Paragraph(cert, summary_style)
+            story.append(cert_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
+    
+    # Projects Section
+    if data['projects']:
+        story.append(Paragraph("<b>Projects:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for project in data['projects']:
+            project_paragraph = Paragraph(project, summary_style)
+            story.append(project_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
 
-    # Key Skills
-    if user_data["key_skills"]:
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, height - 280, "Key Skills")
-        c.setFont("Helvetica", 12)
-        c.drawString(50, height - 300, ', '.join(user_data["key_skills"]))
+    # Awards Section
+    if data['awards']:
+        story.append(Paragraph("<b>Awards:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for award in data['awards']:
+            award_paragraph = Paragraph(award, summary_style)
+            story.append(award_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
 
-    # Professional Experience
-    if user_data["professional_experience"]:
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, height - 340, "Professional Experience")
-        y_position = height - 360
-        c.setFont("Helvetica", 12)
-        for experience in user_data["professional_experience"]:
-            c.drawString(50, y_position, experience)
-            y_position -= 20
+    # Volunteer Work Section
+    if data['volunteer_work']:
+        story.append(Paragraph("<b>Volunteer Work:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for volunteer in data['volunteer_work']:
+            volunteer_paragraph = Paragraph(volunteer, summary_style)
+            story.append(volunteer_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
+    
+    # Languages Section
+    if data['languages']:
+        story.append(Paragraph("<b>Languages:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for language in data['languages']:
+            language_paragraph = Paragraph(language, summary_style)
+            story.append(language_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
 
-    # Education
-    if user_data["education"]:
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, y_position, "Education")
-        y_position -= 20
-        c.setFont("Helvetica", 12)
-        for edu in user_data["education"]:
-            c.drawString(50, y_position, edu)
-            y_position -= 20
+    # Additional Sections (if any)
+    if data['additional']:
+        story.append(Paragraph("<b>Additional Sections:</b>", styles['Heading2']))
+        story.append(Spacer(1, 0.1 * inch))
+        for additional in data['additional']:
+            additional_paragraph = Paragraph(additional, summary_style)
+            story.append(additional_paragraph)
+            story.append(Spacer(1, 0.15 * inch))
 
-    # Certifications
-    if user_data["certifications"]:
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(50, y_position, "Certifications")
-        y_position -= 20
-        c.setFont("Helvetica", 12)
-        for cert in user_data["certifications"]:
-            c.drawString(50, y_position, cert)
-            y_position -= 20
+    # Build the PDF document
+    doc.build(story)
 
-    # Additional sections can be added similarly...
+# Streamlit App
 
-    # Save PDF to buffer
-    c.save()
-
-    # Move buffer position to the beginning
-    buffer.seek(0)
-    return buffer
-
-
-# Streamlit app UI
 def main():
-    st.title("Resume / CV Generator from Word File")
-
-    # Upload Word File
-    uploaded_file = st.file_uploader("Upload a Word File", type="docx")
-
-    if uploaded_file:
-        # Extract content from the uploaded Word file
+    st.title("Resume Builder - Upload Word Document")
+    
+    # Upload file
+    uploaded_file = st.file_uploader("Upload your Word file", type="docx")
+    
+    if uploaded_file is not None:
+        # Extract text from the uploaded Word document
         user_data = extract_text_from_word(uploaded_file)
-        st.success("Content extracted successfully!")
+        
+        # Display extracted data
+        st.write("### Extracted Data:")
+        st.json(user_data)
 
-        # Display the extracted data (optional)
-        st.write(user_data)
-
-        # Generate PDF button
+        # Generate the PDF button
         if st.button("Generate Resume PDF"):
-            pdf_buffer = generate_pdf_reportlab(user_data)
-            st.success("Your PDF has been generated successfully!")
-            st.download_button("Download Resume PDF", pdf_buffer, file_name="resume.pdf", mime="application/pdf")
-
-
+            filename = "generated_resume.pdf"
+            generate_resume_pdf(user_data, filename)
+            st.success(f"Resume generated successfully! You can download it [here]({filename}).")
+            
 if __name__ == "__main__":
     main()
