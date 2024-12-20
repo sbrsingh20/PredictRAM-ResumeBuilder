@@ -1,52 +1,67 @@
 import streamlit as st
-from fpdf import FPDF
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.pdfgen import canvas
+from io import BytesIO
 
-# Function to generate PDF
-def generate_pdf(user_data, resume_type):
-    pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
-    pdf.add_page()
 
-    pdf.set_font('Arial', 'B', 16)
-    pdf.cell(200, 10, txt=f"{user_data['name']}'s {resume_type}", ln=True, align='C')
-    pdf.ln(10)
+# Function to generate PDF using ReportLab
+def generate_pdf_reportlab(user_data, resume_type):
+    buffer = BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+
+    # Title of the resume
+    c.setFont("Helvetica-Bold", 16)
+    c.drawString(200, height - 50, f"{user_data['name']}'s {resume_type}")
 
     # Personal Information
-    pdf.set_font('Arial', '', 12)
-    pdf.cell(200, 10, txt=f"Name: {user_data['name']}", ln=True)
-    pdf.cell(200, 10, txt=f"Email: {user_data['email']}", ln=True)
-    pdf.cell(200, 10, txt=f"Phone: {user_data['phone']}", ln=True)
-    pdf.cell(200, 10, txt=f"Location: {user_data['location']}", ln=True)
-    pdf.ln(10)
+    c.setFont("Helvetica", 12)
+    c.drawString(50, height - 100, f"Name: {user_data['name']}")
+    c.drawString(50, height - 120, f"Email: {user_data['email']}")
+    c.drawString(50, height - 140, f"Phone: {user_data['phone']}")
+    c.drawString(50, height - 160, f"Location: {user_data['location']}")
 
-    # Education
+    # Education Section
     if user_data['education']:
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(200, 10, txt="Education", ln=True)
-        pdf.set_font('Arial', '', 12)
+        y_position = height - 200
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(50, y_position, "Education")
+        y_position -= 20
+        c.setFont("Helvetica", 12)
+
         for edu in user_data['education']:
-            pdf.cell(200, 10, txt=f"{edu['degree']} in {edu['field']} from {edu['institution']} ({edu['year']})", ln=True)
-        pdf.ln(10)
+            c.drawString(50, y_position, f"{edu['degree']} in {edu['field']} from {edu['institution']} ({edu['year']})")
+            y_position -= 20
 
-    # Work Experience
+    # Work Experience Section
     if user_data['work_experience']:
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(200, 10, txt="Work Experience", ln=True)
-        pdf.set_font('Arial', '', 12)
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(50, y_position, "Work Experience")
+        y_position -= 20
+        c.setFont("Helvetica", 12)
+
         for work in user_data['work_experience']:
-            pdf.cell(200, 10, txt=f"{work['title']} at {work['company']} ({work['years']})", ln=True)
-            pdf.multi_cell(0, 10, txt=f"Description: {work['description']}")
-        pdf.ln(10)
+            c.drawString(50, y_position, f"{work['title']} at {work['company']} ({work['years']})")
+            y_position -= 20
+            c.drawString(50, y_position, f"Description: {work['description']}")
+            y_position -= 30
 
-    # Skills
+    # Skills Section
     if user_data['skills']:
-        pdf.set_font('Arial', 'B', 14)
-        pdf.cell(200, 10, txt="Skills", ln=True)
-        pdf.set_font('Arial', '', 12)
-        pdf.cell(200, 10, txt=', '.join(user_data['skills']), ln=True)
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(50, y_position, "Skills")
+        y_position -= 20
+        c.setFont("Helvetica", 12)
+        c.drawString(50, y_position, ', '.join(user_data['skills']))
 
-    # Save PDF
-    pdf.output("resume.pdf")
+    # Save PDF to buffer
+    c.save()
+
+    # Move buffer position to the beginning
+    buffer.seek(0)
+    return buffer
+
 
 # Streamlit app UI
 def main():
@@ -80,57 +95,43 @@ def main():
         else:
             # Input for Education entries
             st.subheader("Education")
+            education_count = st.number_input(
+                "Number of Education Entries", min_value=1, max_value=5,
+                value=max(1, len(st.session_state.user_data['education']))
+            )
 
-            # Use a form for dynamic education entries
-            with st.form(key='education_form'):
-                education_count = st.number_input(
-                    "Number of Education Entries", min_value=1, max_value=5,
-                    value=max(1, len(st.session_state.user_data['education']))
-                )
-
-                # Add Education Entries dynamically
-                for i in range(education_count):
-                    if i >= len(st.session_state.user_data['education']):
-                        st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
-
-                    with st.expander(f"Education Entry {i + 1}"):
-                        degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'])
-                        field = st.text_input(f"Field of Study {i + 1}", value=st.session_state.user_data['education'][i]['field'])
-                        institution = st.text_input(f"Institution {i + 1}", value=st.session_state.user_data['education'][i]['institution'])
-                        year = st.text_input(f"Year of Graduation {i + 1}", value=st.session_state.user_data['education'][i]['year'])
-
-                        if degree and field and institution and year:
-                            st.session_state.user_data['education'][i] = {'degree': degree, 'field': field, 'institution': institution, 'year': year}
-
-                add_education_button = st.form_submit_button("Add Education Entry")
-                if add_education_button:
+            for i in range(education_count):
+                if i >= len(st.session_state.user_data['education']):
                     st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
+
+                with st.expander(f"Education Entry {i + 1}"):
+                    degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'])
+                    field = st.text_input(f"Field of Study {i + 1}", value=st.session_state.user_data['education'][i]['field'])
+                    institution = st.text_input(f"Institution {i + 1}", value=st.session_state.user_data['education'][i]['institution'])
+                    year = st.text_input(f"Year of Graduation {i + 1}", value=st.session_state.user_data['education'][i]['year'])
+
+                    if degree and field and institution and year:
+                        st.session_state.user_data['education'][i] = {'degree': degree, 'field': field, 'institution': institution, 'year': year}
 
             # Input for Work Experience entries
             st.subheader("Work Experience")
-            with st.form(key='work_experience_form'):
-                work_count = st.number_input(
-                    "Number of Work Experiences", min_value=1, max_value=5,
-                    value=max(1, len(st.session_state.user_data['work_experience']))
-                )
+            work_count = st.number_input(
+                "Number of Work Experiences", min_value=1, max_value=5,
+                value=max(1, len(st.session_state.user_data['work_experience']))
+            )
 
-                # Add Work Experience Entries dynamically
-                for i in range(work_count):
-                    if i >= len(st.session_state.user_data['work_experience']):
-                        st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
-
-                    with st.expander(f"Work Experience Entry {i + 1}"):
-                        title = st.text_input(f"Job Title {i + 1}", value=st.session_state.user_data['work_experience'][i]['title'])
-                        company = st.text_input(f"Company {i + 1}", value=st.session_state.user_data['work_experience'][i]['company'])
-                        years = st.text_input(f"Years of Employment {i + 1}", value=st.session_state.user_data['work_experience'][i]['years'])
-                        description = st.text_area(f"Job Description {i + 1}", value=st.session_state.user_data['work_experience'][i]['description'])
-
-                        if title and company and years:
-                            st.session_state.user_data['work_experience'][i] = {'title': title, 'company': company, 'years': years, 'description': description}
-
-                add_work_button = st.form_submit_button("Add Work Entry")
-                if add_work_button:
+            for i in range(work_count):
+                if i >= len(st.session_state.user_data['work_experience']):
                     st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
+
+                with st.expander(f"Work Experience Entry {i + 1}"):
+                    title = st.text_input(f"Job Title {i + 1}", value=st.session_state.user_data['work_experience'][i]['title'])
+                    company = st.text_input(f"Company {i + 1}", value=st.session_state.user_data['work_experience'][i]['company'])
+                    years = st.text_input(f"Years of Employment {i + 1}", value=st.session_state.user_data['work_experience'][i]['years'])
+                    description = st.text_area(f"Job Description {i + 1}", value=st.session_state.user_data['work_experience'][i]['description'])
+
+                    if title and company and years:
+                        st.session_state.user_data['work_experience'][i] = {'title': title, 'company': company, 'years': years, 'description': description}
 
             # Input for Skills
             st.subheader("Skills")
@@ -143,10 +144,10 @@ def main():
 
             # Generate PDF button
             if st.button("Generate PDF"):
-                generate_pdf(st.session_state.user_data, resume_type)
+                pdf_buffer = generate_pdf_reportlab(st.session_state.user_data, resume_type)
                 st.success("Your PDF has been generated successfully!")
-                with open("resume.pdf", "rb") as f:
-                    st.download_button("Download PDF", f, file_name="resume.pdf")
+                st.download_button("Download PDF", pdf_buffer, file_name="resume.pdf", mime="application/pdf")
+
 
 if __name__ == "__main__":
     main()
