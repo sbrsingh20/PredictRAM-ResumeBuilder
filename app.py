@@ -103,55 +103,87 @@ def generate_resume_pdf(data):
     # Create a stylesheet for the document
     styles = getSampleStyleSheet()
 
-    # Header Section: Full Name, Phone, Email, LinkedIn, Location
-    header_style = styles['Heading1']
-    header_style.fontSize = 24
-    header_style.leading = 28
+    # Professional Header Style
+    header_style = ParagraphStyle(
+        "HeaderStyle",
+        parent=styles["Heading1"],
+        fontName="Helvetica-Bold",
+        fontSize=32,
+        alignment=1,
+        spaceAfter=12
+    )
 
+    # Contact Info Style
+    contact_style = ParagraphStyle(
+        "ContactStyle",
+        fontName="Helvetica",
+        fontSize=10,
+        alignment=1,
+        spaceAfter=6,
+        textColor=colors.black
+    )
+
+    # Section Title Style (for Professional Summary, Experience, Education)
+    section_title_style = ParagraphStyle(
+        "SectionTitle",
+        parent=styles["Heading2"],
+        fontName="Helvetica-Bold",
+        fontSize=14,
+        textColor=colors.darkblue,
+        alignment=0,  # Left align
+        spaceBefore=6,
+        spaceAfter=3
+    )
+
+    # Regular Paragraph Style
+    normal_style = ParagraphStyle(
+        "NormalStyle",
+        parent=styles["Normal"],
+        fontName="Helvetica",
+        fontSize=10,
+        spaceAfter=6
+    )
+    
+    # Header Section: Full Name
     name = data['contact_info'].get('name', 'N/A')
+    story.append(Paragraph(name, header_style))
+    story.append(Spacer(1, 0.25 * inch))
+
+    # Contact Info Section: Phone, Email, LinkedIn, Location
     phone = data['contact_info'].get('phone', 'N/A')
     email = data['contact_info'].get('email', 'N/A')
     linkedin = data['contact_info'].get('linkedin', 'N/A')
     location = data['contact_info'].get('location', 'N/A')
     
-    header = f"{name}"
-    story.append(Paragraph(header, header_style))
-    story.append(Spacer(1, 0.25 * inch))
-
-    # Contact Info: Phone, Email, LinkedIn, Location (Smaller Font)
-    contact_style = styles['Normal']
-    contact_style.fontSize = 10
     contact_info = f"Phone: {phone} | Email: {email} | LinkedIn: {linkedin} | Location: {location}"
     story.append(Paragraph(contact_info, contact_style))
-    story.append(Spacer(1, 0.25 * inch))
+    story.append(Spacer(1, 0.5 * inch))
 
     # Professional Summary Section
     if data['professional_summary']:
-        story.append(Paragraph("<b>Professional Summary:</b>", styles['Heading2']))
+        story.append(Paragraph("<b>Professional Summary:</b>", section_title_style))
         story.append(Spacer(1, 0.1 * inch))
-        story.append(Paragraph(data['professional_summary'], styles['Normal']))
+        story.append(Paragraph(data['professional_summary'], normal_style))
         story.append(Spacer(1, 0.25 * inch))
 
     # Professional Experience Section
     if data['professional_experience']:
-        story.append(Paragraph("<b>Professional Experience:</b>", styles['Heading2']))
+        story.append(Paragraph("<b>Professional Experience:</b>", section_title_style))
         story.append(Spacer(1, 0.1 * inch))
         for job in data['professional_experience']:
-            story.append(Paragraph(job, styles['Normal']))
-            story.append(Spacer(1, 0.1 * inch))
-    
-    # Education Section
-    if data['education']:
-        story.append(Paragraph("<b>Education:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        for edu in data['education']:
-            story.append(Paragraph(edu, styles['Normal']))
+            story.append(Paragraph(job, normal_style))
             story.append(Spacer(1, 0.1 * inch))
 
-    # Right side section (Certifications, Projects, Awards, Volunteer Work, Languages)
+    # Education Section
+    if data['education']:
+        story.append(Paragraph("<b>Education:</b>", section_title_style))
+        story.append(Spacer(1, 0.1 * inch))
+        for edu in data['education']:
+            story.append(Paragraph(edu, normal_style))
+            story.append(Spacer(1, 0.1 * inch))
+
+    # Right-side column with Certifications, Projects, Awards, etc.
     right_column_data = []
-    
-    # Add certifications, projects, awards, volunteer work, languages, additional to right column
     right_column_data.append(("Certifications", data['certifications']))
     right_column_data.append(("Projects", data['projects']))
     right_column_data.append(("Awards", data['awards']))
@@ -159,13 +191,14 @@ def generate_resume_pdf(data):
     right_column_data.append(("Languages", data['languages']))
     right_column_data.append(("Additional", data['additional']))
 
+    # Add these sections to the right-side column
     for title, content in right_column_data:
         if content:
             story.append(Spacer(1, 0.25 * inch))  # Add spacing between sections
-            story.append(Paragraph(f"<b>{title}:</b>", styles['Heading2']))
+            story.append(Paragraph(f"<b>{title}:</b>", section_title_style))
             story.append(Spacer(1, 0.1 * inch))
             for item in content:
-                story.append(Paragraph(item, styles['Normal']))
+                story.append(Paragraph(item, normal_style))
                 story.append(Spacer(1, 0.1 * inch))
 
     # Build the PDF document
@@ -177,7 +210,7 @@ def generate_resume_pdf(data):
 
 # Streamlit App
 def main():
-    st.title("Resume Builder - Upload Word Document")
+    st.title("Professional Resume Builder - Upload Word Document")
     
     # Upload file
     uploaded_file = st.file_uploader("Upload your Word file", type="docx")
