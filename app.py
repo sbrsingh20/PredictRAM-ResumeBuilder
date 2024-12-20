@@ -79,8 +79,13 @@ def main():
         else:
             # Input for education
             st.subheader("Education")
-            education_count = st.number_input("Number of Education Entries", min_value=1, max_value=5,
-                                              value=len(st.session_state.user_data['education']))
+            # Ensure that the initial value is at least 1
+            education_count = st.number_input(
+                "Number of Education Entries",
+                min_value=1, 
+                max_value=5, 
+                value=max(1, len(st.session_state.user_data['education']))  # Use max(1, len(...)) to ensure the value is >= 1
+            )
             for i in range(education_count):
                 with st.expander(f"Education Entry {i + 1}"):
                     degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'] if i < len(st.session_state.user_data['education']) else "")
