@@ -3,9 +3,9 @@ from docx import Document
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from io import BytesIO
-from reportlab.lib.units import inch  # Add this import to use 'inch'
+from reportlab.lib.units import inch  # Added this import to use 'inch'
 
 # Function to extract text from Word file
 def extract_text_from_word(file):
@@ -28,7 +28,6 @@ def extract_text_from_word(file):
     for para in doc.paragraphs:
         para_text = para.text.strip()
         
-        # Ensure we check if there's a colon before splitting
         if "Full Name" in para_text:
             if ":" in para_text:
                 data["contact_info"]["name"] = para_text.split(":")[1].strip()
@@ -53,7 +52,7 @@ def extract_text_from_word(file):
         elif "Key Skills" in para_text:
             current_section = "key_skills"
             if ":" in para_text:
-                data["key_skills"] = para_text.split(":")[1].strip().split(",")  # Assuming skills are comma-separated
+                data["key_skills"] = para_text.split(":")[1].strip().split(",")
         
         elif "Professional Experience" in para_text:
             current_section = "professional_experience"
@@ -72,7 +71,6 @@ def extract_text_from_word(file):
         elif "Additional" in para_text:
             current_section = "additional"
 
-        # For sections that follow the headings
         elif current_section == "professional_experience":
             data["professional_experience"].append(para_text)
         elif current_section == "education":
@@ -107,8 +105,8 @@ def generate_resume_pdf(data):
 
     # Header Section: Full Name, Phone, Email, LinkedIn, Location
     header_style = styles['Heading1']
-    header_style.fontSize = 18
-    header_style.leading = 22
+    header_style.fontSize = 24
+    header_style.leading = 28
 
     name = data['contact_info'].get('name', 'N/A')
     phone = data['contact_info'].get('phone', 'N/A')
@@ -116,99 +114,59 @@ def generate_resume_pdf(data):
     linkedin = data['contact_info'].get('linkedin', 'N/A')
     location = data['contact_info'].get('location', 'N/A')
     
-    header = f"{name}\n{phone} | {email} | {linkedin} | {location}"
+    header = f"{name}"
     story.append(Paragraph(header, header_style))
     story.append(Spacer(1, 0.25 * inch))
-    
+
+    # Contact Info: Phone, Email, LinkedIn, Location (Smaller Font)
+    contact_style = styles['Normal']
+    contact_style.fontSize = 10
+    contact_info = f"Phone: {phone} | Email: {email} | LinkedIn: {linkedin} | Location: {location}"
+    story.append(Paragraph(contact_info, contact_style))
+    story.append(Spacer(1, 0.25 * inch))
+
     # Professional Summary Section
-    summary_style = styles['Normal']
-    summary_style.fontSize = 12
-    summary_style.leading = 14
     if data['professional_summary']:
         story.append(Paragraph("<b>Professional Summary:</b>", styles['Heading2']))
         story.append(Spacer(1, 0.1 * inch))
-        story.append(Paragraph(data['professional_summary'], summary_style))
+        story.append(Paragraph(data['professional_summary'], styles['Normal']))
         story.append(Spacer(1, 0.25 * inch))
-    
-    # Key Skills Section
-    if data['key_skills']:
-        story.append(Paragraph("<b>Key Skills:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        key_skills = ', '.join(data['key_skills'])
-        story.append(Paragraph(key_skills, summary_style))
-        story.append(Spacer(1, 0.25 * inch))
-    
+
     # Professional Experience Section
     if data['professional_experience']:
         story.append(Paragraph("<b>Professional Experience:</b>", styles['Heading2']))
         story.append(Spacer(1, 0.1 * inch))
         for job in data['professional_experience']:
-            job_paragraph = Paragraph(job, summary_style)
-            story.append(job_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
-
+            story.append(Paragraph(job, styles['Normal']))
+            story.append(Spacer(1, 0.1 * inch))
+    
     # Education Section
     if data['education']:
         story.append(Paragraph("<b>Education:</b>", styles['Heading2']))
         story.append(Spacer(1, 0.1 * inch))
         for edu in data['education']:
-            edu_paragraph = Paragraph(edu, summary_style)
-            story.append(edu_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
-    
-    # Certifications Section
-    if data['certifications']:
-        story.append(Paragraph("<b>Certifications:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        for cert in data['certifications']:
-            cert_paragraph = Paragraph(cert, summary_style)
-            story.append(cert_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
-    
-    # Projects Section
-    if data['projects']:
-        story.append(Paragraph("<b>Projects:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        for project in data['projects']:
-            project_paragraph = Paragraph(project, summary_style)
-            story.append(project_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
+            story.append(Paragraph(edu, styles['Normal']))
+            story.append(Spacer(1, 0.1 * inch))
 
-    # Awards Section
-    if data['awards']:
-        story.append(Paragraph("<b>Awards:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        for award in data['awards']:
-            award_paragraph = Paragraph(award, summary_style)
-            story.append(award_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
-
-    # Volunteer Work Section
-    if data['volunteer_work']:
-        story.append(Paragraph("<b>Volunteer Work:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        for volunteer in data['volunteer_work']:
-            volunteer_paragraph = Paragraph(volunteer, summary_style)
-            story.append(volunteer_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
+    # Right side section (Certifications, Projects, Awards, Volunteer Work, Languages)
+    right_column_data = []
     
-    # Languages Section
-    if data['languages']:
-        story.append(Paragraph("<b>Languages:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        for language in data['languages']:
-            language_paragraph = Paragraph(language, summary_style)
-            story.append(language_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
+    # Add certifications, projects, awards, volunteer work, languages, additional to right column
+    right_column_data.append(("Certifications", data['certifications']))
+    right_column_data.append(("Projects", data['projects']))
+    right_column_data.append(("Awards", data['awards']))
+    right_column_data.append(("Volunteer Work", data['volunteer_work']))
+    right_column_data.append(("Languages", data['languages']))
+    right_column_data.append(("Additional", data['additional']))
 
-    # Additional Sections (if any)
-    if data['additional']:
-        story.append(Paragraph("<b>Additional Sections:</b>", styles['Heading2']))
-        story.append(Spacer(1, 0.1 * inch))
-        for additional in data['additional']:
-            additional_paragraph = Paragraph(additional, summary_style)
-            story.append(additional_paragraph)
-            story.append(Spacer(1, 0.15 * inch))
+    for title, content in right_column_data:
+        if content:
+            story.append(Spacer(1, 0.25 * inch))  # Add spacing between sections
+            story.append(Paragraph(f"<b>{title}:</b>", styles['Heading2']))
+            story.append(Spacer(1, 0.1 * inch))
+            for item in content:
+                story.append(Paragraph(item, styles['Normal']))
+                story.append(Spacer(1, 0.1 * inch))
 
     # Build the PDF document
     doc.build(story)
