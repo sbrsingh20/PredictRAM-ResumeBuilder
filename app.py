@@ -88,17 +88,18 @@ def main():
 
             # Add Education Entries
             for i in range(education_count):
+                if i >= len(st.session_state.user_data['education']):
+                    st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
+
                 with st.expander(f"Education Entry {i + 1}"):
-                    degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'] if i < len(st.session_state.user_data['education']) else "")
-                    field = st.text_input(f"Field of Study {i + 1}", value=st.session_state.user_data['education'][i]['field'] if i < len(st.session_state.user_data['education']) else "")
-                    institution = st.text_input(f"Institution {i + 1}", value=st.session_state.user_data['education'][i]['institution'] if i < len(st.session_state.user_data['education']) else "")
-                    year = st.text_input(f"Year of Graduation {i + 1}", value=st.session_state.user_data['education'][i]['year'] if i < len(st.session_state.user_data['education']) else "")
+                    degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'])
+                    field = st.text_input(f"Field of Study {i + 1}", value=st.session_state.user_data['education'][i]['field'])
+                    institution = st.text_input(f"Institution {i + 1}", value=st.session_state.user_data['education'][i]['institution'])
+                    year = st.text_input(f"Year of Graduation {i + 1}", value=st.session_state.user_data['education'][i]['year'])
+
                     if degree and field and institution and year:
-                        if len(st.session_state.user_data['education']) <= i:
-                            st.session_state.user_data['education'].append({'degree': degree, 'field': field, 'institution': institution, 'year': year})
-                        else:
-                            st.session_state.user_data['education'][i] = {'degree': degree, 'field': field, 'institution': institution, 'year': year}
-            
+                        st.session_state.user_data['education'][i] = {'degree': degree, 'field': field, 'institution': institution, 'year': year}
+
             # Option to add another entry
             if st.button('Add Another Education Entry'):
                 st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
@@ -114,21 +115,18 @@ def main():
 
             # Add Work Experience Entries
             for i in range(work_count):
+                if i >= len(st.session_state.user_data['work_experience']):
+                    st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
+
                 with st.expander(f"Work Experience Entry {i + 1}"):
-                    title = st.text_input(f"Job Title {i + 1}",
-                                         value=st.session_state.user_data['work_experience'][i]['title'] if i < len(st.session_state.user_data['work_experience']) else "")
-                    company = st.text_input(f"Company {i + 1}",
-                                           value=st.session_state.user_data['work_experience'][i]['company'] if i < len(st.session_state.user_data['work_experience']) else "")
-                    years = st.text_input(f"Years of Employment {i + 1}",
-                                          value=st.session_state.user_data['work_experience'][i]['years'] if i < len(st.session_state.user_data['work_experience']) else "")
-                    description = st.text_area(f"Job Description {i + 1}",
-                                               value=st.session_state.user_data['work_experience'][i]['description'] if i < len(st.session_state.user_data['work_experience']) else "")
+                    title = st.text_input(f"Job Title {i + 1}", value=st.session_state.user_data['work_experience'][i]['title'])
+                    company = st.text_input(f"Company {i + 1}", value=st.session_state.user_data['work_experience'][i]['company'])
+                    years = st.text_input(f"Years of Employment {i + 1}", value=st.session_state.user_data['work_experience'][i]['years'])
+                    description = st.text_area(f"Job Description {i + 1}", value=st.session_state.user_data['work_experience'][i]['description'])
+
                     if title and company and years:
-                        if len(st.session_state.user_data['work_experience']) <= i:
-                            st.session_state.user_data['work_experience'].append({'title': title, 'company': company, 'years': years, 'description': description})
-                        else:
-                            st.session_state.user_data['work_experience'][i] = {'title': title, 'company': company, 'years': years, 'description': description}
-            
+                        st.session_state.user_data['work_experience'][i] = {'title': title, 'company': company, 'years': years, 'description': description}
+
             # Option to add another entry
             if st.button('Add Another Work Experience Entry'):
                 st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
