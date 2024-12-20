@@ -180,13 +180,17 @@ def generate_resume_pdf(data):
         story.append(Paragraph("<b>Professional Experience:</b>", section_title_style))
         story.append(Spacer(1, 0.1 * inch))
         for job in data['professional_experience']:
-            job_title = "Job Title: " + job.split(":")[0]
-            dates_of_employment = "Dates of Employment: " + job.split(":")[1]
-            responsibilities = "Responsibilities & Achievements: " + job.split(":")[2]
-            story.append(Paragraph(job_title, bold_style))
-            story.append(Paragraph(dates_of_employment, bold_style))
-            story.append(Paragraph(responsibilities, normal_style))
-            story.append(Spacer(1, 0.1 * inch))
+            # Ensure the job data is properly formatted and has enough parts
+            job_parts = job.split(":")
+            if len(job_parts) >= 3:
+                job_title = "Job Title: " + job_parts[0].strip()
+                dates_of_employment = "Dates of Employment: " + job_parts[1].strip()
+                responsibilities = "Responsibilities & Achievements: " + job_parts[2].strip()
+                
+                story.append(Paragraph(job_title, bold_style))
+                story.append(Paragraph(dates_of_employment, bold_style))
+                story.append(Paragraph(responsibilities, normal_style))
+                story.append(Spacer(1, 0.1 * inch))
 
     # Education Section
     if data['education']:
