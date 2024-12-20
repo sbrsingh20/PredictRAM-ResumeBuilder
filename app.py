@@ -197,13 +197,16 @@ def generate_resume_pdf(data):
         story.append(Paragraph("<b>Education:</b>", section_title_style))
         story.append(Spacer(1, 0.1 * inch))
         for edu in data['education']:
-            degree = "Degree: " + edu.split(":")[0]
-            major_minor = "Major/Minor: " + edu.split(":")[1]
-            graduation_year = "Graduation Year: " + edu.split(":")[2]
-            story.append(Paragraph(degree, bold_style))
-            story.append(Paragraph(major_minor, bold_style))
-            story.append(Paragraph(graduation_year, normal_style))
-            story.append(Spacer(1, 0.1 * inch))
+            # Ensure the education data is properly formatted and has enough parts
+            edu_parts = edu.split(":")
+            if len(edu_parts) >= 3:
+                degree = "Degree: " + edu_parts[0].strip()
+                major_minor = "Major/Minor: " + edu_parts[1].strip()
+                graduation_year = "Graduation Year: " + edu_parts[2].strip()
+                story.append(Paragraph(degree, bold_style))
+                story.append(Paragraph(major_minor, bold_style))
+                story.append(Paragraph(graduation_year, normal_style))
+                story.append(Spacer(1, 0.1 * inch))
 
     # Right-side column with Certifications, Projects, Awards, etc.
     right_column_data = []
@@ -227,28 +230,23 @@ def generate_resume_pdf(data):
     # Build the PDF document
     doc.build(story)
     
-    # Return the buffer so we can serve the file in Streamlit
+    # Save the PDF to buffer
     buffer.seek(0)
     return buffer
 
-# Streamlit App
+# Streamlit interface
 def main():
     st.title("Resume Builder")
+    uploaded_file = st.file_uploader("Upload Word file", type=["docx"])
 
-    # Upload Word file
-    uploaded_file = st.file_uploader("Upload your Word Document", type="docx")
-    
     if uploaded_file:
-        # Extract data from the uploaded Word document
         user_data = extract_text_from_word(uploaded_file)
-        
-        # Generate PDF resume
         resume_pdf = generate_resume_pdf(user_data)
 
-        # Provide a download link for the generated PDF
-        st.success("Resume generated successfully! You can download it here.")
+        # Provide download link for PDF
+        st.write("Resume generated successfully! You can download it here.")
         st.download_button(
-            label="Download Resume PDF",
+            label="Download Resume",
             data=resume_pdf,
             file_name="generated_resume.pdf",
             mime="application/pdf"
