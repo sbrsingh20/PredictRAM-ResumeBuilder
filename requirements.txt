@@ -1,5 +1,5 @@
 streamlit
 fpdf
 reportlab
-docx
+python-docx
 exceptions
