@@ -144,6 +144,15 @@ def generate_resume_pdf(data):
         spaceAfter=6
     )
     
+    # Bold Paragraph Style for specific headings
+    bold_style = ParagraphStyle(
+        "BoldStyle",
+        parent=styles["Normal"],
+        fontName="Helvetica-Bold",
+        fontSize=10,
+        spaceAfter=6
+    )
+
     # Header Section: Full Name
     name = data['contact_info'].get('name', 'N/A')
     story.append(Paragraph(name, header_style))
@@ -171,7 +180,12 @@ def generate_resume_pdf(data):
         story.append(Paragraph("<b>Professional Experience:</b>", section_title_style))
         story.append(Spacer(1, 0.1 * inch))
         for job in data['professional_experience']:
-            story.append(Paragraph(job, normal_style))
+            job_title = "Job Title: " + job.split(":")[0]
+            dates_of_employment = "Dates of Employment: " + job.split(":")[1]
+            responsibilities = "Responsibilities & Achievements: " + job.split(":")[2]
+            story.append(Paragraph(job_title, bold_style))
+            story.append(Paragraph(dates_of_employment, bold_style))
+            story.append(Paragraph(responsibilities, normal_style))
             story.append(Spacer(1, 0.1 * inch))
 
     # Education Section
@@ -179,7 +193,12 @@ def generate_resume_pdf(data):
         story.append(Paragraph("<b>Education:</b>", section_title_style))
         story.append(Spacer(1, 0.1 * inch))
         for edu in data['education']:
-            story.append(Paragraph(edu, normal_style))
+            degree = "Degree: " + edu.split(":")[0]
+            major_minor = "Major/Minor: " + edu.split(":")[1]
+            graduation_year = "Graduation Year: " + edu.split(":")[2]
+            story.append(Paragraph(degree, bold_style))
+            story.append(Paragraph(major_minor, bold_style))
+            story.append(Paragraph(graduation_year, normal_style))
             story.append(Spacer(1, 0.1 * inch))
 
     # Right-side column with Certifications, Projects, Awards, etc.
@@ -210,30 +229,26 @@ def generate_resume_pdf(data):
 
 # Streamlit App
 def main():
-    st.title("Professional Resume Builder - Upload Word Document")
+    st.title("Resume Builder")
+
+    # Upload Word file
+    uploaded_file = st.file_uploader("Upload your Word Document", type="docx")
     
-    # Upload file
-    uploaded_file = st.file_uploader("Upload your Word file", type="docx")
-    
-    if uploaded_file is not None:
-        # Extract text from the uploaded Word document
+    if uploaded_file:
+        # Extract data from the uploaded Word document
         user_data = extract_text_from_word(uploaded_file)
         
-        # Display extracted data
-        st.write("### Extracted Data:")
-        st.json(user_data)
+        # Generate PDF resume
+        resume_pdf = generate_resume_pdf(user_data)
 
-        # Generate the PDF button
-        if st.button("Generate Resume PDF"):
-            resume_pdf = generate_resume_pdf(user_data)
-            
-            # Provide download button
-            st.download_button(
-                label="Download Resume PDF",
-                data=resume_pdf,
-                file_name="resume.pdf",
-                mime="application/pdf"
-            )
+        # Provide a download link for the generated PDF
+        st.success("Resume generated successfully! You can download it here.")
+        st.download_button(
+            label="Download Resume PDF",
+            data=resume_pdf,
+            file_name="generated_resume.pdf",
+            mime="application/pdf"
+        )
 
 if __name__ == "__main__":
     main()
