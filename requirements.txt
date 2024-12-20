@@ -2,4 +2,3 @@ streamlit
 fpdf
 reportlab
 python-docx
-exceptions
