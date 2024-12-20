@@ -2,3 +2,4 @@ streamlit
 fpdf
 reportlab
 docx
+exceptions
