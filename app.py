@@ -79,12 +79,11 @@ def main():
         else:
             # Input for education
             st.subheader("Education")
-            # Ensure that the initial value is at least 1
             education_count = st.number_input(
                 "Number of Education Entries",
                 min_value=1, 
                 max_value=5, 
-                value=max(1, len(st.session_state.user_data['education']))  # Use max(1, len(...)) to ensure the value is >= 1
+                value=max(1, len(st.session_state.user_data['education']))  # Ensure value is >= 1
             )
             for i in range(education_count):
                 with st.expander(f"Education Entry {i + 1}"):
@@ -100,8 +99,12 @@ def main():
 
             # Input for work experience
             st.subheader("Work Experience")
-            work_count = st.number_input("Number of Work Experiences", min_value=1, max_value=5,
-                                        value=len(st.session_state.user_data['work_experience']))
+            work_count = st.number_input(
+                "Number of Work Experiences", 
+                min_value=1, 
+                max_value=5,
+                value=max(1, len(st.session_state.user_data['work_experience']))  # Ensure value is >= 1
+            )
             for i in range(work_count):
                 with st.expander(f"Work Experience Entry {i + 1}"):
                     title = st.text_input(f"Job Title {i + 1}",
