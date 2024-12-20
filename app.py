@@ -64,12 +64,13 @@ def main():
             'skills': []
         }
 
-    # Input form for personal information
-    with st.form(key='user_details'):
+    # Form for personal information
+    with st.form(key="personal_info"):
         st.session_state.user_data['name'] = st.text_input("Name", value=st.session_state.user_data['name'])
         st.session_state.user_data['email'] = st.text_input("Email", value=st.session_state.user_data['email'])
         st.session_state.user_data['phone'] = st.text_input("Phone", value=st.session_state.user_data['phone'])
         st.session_state.user_data['location'] = st.text_input("Location", value=st.session_state.user_data['location'])
+
         submit_button = st.form_submit_button("Next")
 
     if submit_button:
@@ -77,61 +78,61 @@ def main():
                     st.session_state.user_data['phone'], st.session_state.user_data['location']]):
             st.error("Please fill in all personal information fields.")
         else:
-            # Input for education
+            # Input for Education entries
             st.subheader("Education")
-            education_count = st.number_input(
-                "Number of Education Entries",
-                min_value=1, 
-                max_value=5, 
-                value=max(1, len(st.session_state.user_data['education']))  # Ensure value is >= 1
-            )
 
-            # Add Education Entries
-            for i in range(education_count):
-                if i >= len(st.session_state.user_data['education']):
+            # Use a form for dynamic education entries
+            with st.form(key='education_form'):
+                education_count = st.number_input(
+                    "Number of Education Entries", min_value=1, max_value=5,
+                    value=max(1, len(st.session_state.user_data['education']))
+                )
+
+                # Add Education Entries dynamically
+                for i in range(education_count):
+                    if i >= len(st.session_state.user_data['education']):
+                        st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
+
+                    with st.expander(f"Education Entry {i + 1}"):
+                        degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'])
+                        field = st.text_input(f"Field of Study {i + 1}", value=st.session_state.user_data['education'][i]['field'])
+                        institution = st.text_input(f"Institution {i + 1}", value=st.session_state.user_data['education'][i]['institution'])
+                        year = st.text_input(f"Year of Graduation {i + 1}", value=st.session_state.user_data['education'][i]['year'])
+
+                        if degree and field and institution and year:
+                            st.session_state.user_data['education'][i] = {'degree': degree, 'field': field, 'institution': institution, 'year': year}
+
+                add_education_button = st.form_submit_button("Add Education Entry")
+                if add_education_button:
                     st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
 
-                with st.expander(f"Education Entry {i + 1}"):
-                    degree = st.text_input(f"Degree {i + 1}", value=st.session_state.user_data['education'][i]['degree'])
-                    field = st.text_input(f"Field of Study {i + 1}", value=st.session_state.user_data['education'][i]['field'])
-                    institution = st.text_input(f"Institution {i + 1}", value=st.session_state.user_data['education'][i]['institution'])
-                    year = st.text_input(f"Year of Graduation {i + 1}", value=st.session_state.user_data['education'][i]['year'])
-
-                    if degree and field and institution and year:
-                        st.session_state.user_data['education'][i] = {'degree': degree, 'field': field, 'institution': institution, 'year': year}
-
-            # Option to add another entry
-            if st.button('Add Another Education Entry'):
-                st.session_state.user_data['education'].append({'degree': '', 'field': '', 'institution': '', 'year': ''})
-
-            # Input for work experience
+            # Input for Work Experience entries
             st.subheader("Work Experience")
-            work_count = st.number_input(
-                "Number of Work Experiences", 
-                min_value=1, 
-                max_value=5,
-                value=max(1, len(st.session_state.user_data['work_experience']))  # Ensure value is >= 1
-            )
+            with st.form(key='work_experience_form'):
+                work_count = st.number_input(
+                    "Number of Work Experiences", min_value=1, max_value=5,
+                    value=max(1, len(st.session_state.user_data['work_experience']))
+                )
 
-            # Add Work Experience Entries
-            for i in range(work_count):
-                if i >= len(st.session_state.user_data['work_experience']):
+                # Add Work Experience Entries dynamically
+                for i in range(work_count):
+                    if i >= len(st.session_state.user_data['work_experience']):
+                        st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
+
+                    with st.expander(f"Work Experience Entry {i + 1}"):
+                        title = st.text_input(f"Job Title {i + 1}", value=st.session_state.user_data['work_experience'][i]['title'])
+                        company = st.text_input(f"Company {i + 1}", value=st.session_state.user_data['work_experience'][i]['company'])
+                        years = st.text_input(f"Years of Employment {i + 1}", value=st.session_state.user_data['work_experience'][i]['years'])
+                        description = st.text_area(f"Job Description {i + 1}", value=st.session_state.user_data['work_experience'][i]['description'])
+
+                        if title and company and years:
+                            st.session_state.user_data['work_experience'][i] = {'title': title, 'company': company, 'years': years, 'description': description}
+
+                add_work_button = st.form_submit_button("Add Work Entry")
+                if add_work_button:
                     st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
 
-                with st.expander(f"Work Experience Entry {i + 1}"):
-                    title = st.text_input(f"Job Title {i + 1}", value=st.session_state.user_data['work_experience'][i]['title'])
-                    company = st.text_input(f"Company {i + 1}", value=st.session_state.user_data['work_experience'][i]['company'])
-                    years = st.text_input(f"Years of Employment {i + 1}", value=st.session_state.user_data['work_experience'][i]['years'])
-                    description = st.text_area(f"Job Description {i + 1}", value=st.session_state.user_data['work_experience'][i]['description'])
-
-                    if title and company and years:
-                        st.session_state.user_data['work_experience'][i] = {'title': title, 'company': company, 'years': years, 'description': description}
-
-            # Option to add another entry
-            if st.button('Add Another Work Experience Entry'):
-                st.session_state.user_data['work_experience'].append({'title': '', 'company': '', 'years': '', 'description': ''})
-
-            # Input for skills
+            # Input for Skills
             st.subheader("Skills")
             skills = st.text_input("List your skills (comma separated)", value=', '.join(st.session_state.user_data['skills']))
             if skills:
